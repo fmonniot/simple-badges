@@ -1,5 +1,6 @@
 package eu.monniot.simplebadges.characters
 
+import cats.data.NonEmptyList
 import cats.implicits._
 
 import scala.collection.Searching
@@ -58,19 +59,37 @@ object WidthTable {
     WidthTable(vec)
   }
 
-  // TODO Remove the exception and wrap in an Either[String, Double]
-  def widthOf(table: WidthTable, text: String, guess: Boolean = true): Double =
-    text.foldLeft(0.0) {
-      case (acc, char) =>
+  /** Provides an estimate of the given ''text'' based on the given [[WidthTable]].
+   *
+   * @param table The WidthTable used to know the width of single characters
+   * @param text  The text to extract the width of
+   * @param guess Whether to use the 'm' char size when the width isn't found
+   * @return either the width of the string, or a list of character not found
+   */
+  def widthOf(
+      table: WidthTable,
+      text: String,
+      guess: Boolean = true): Either[NonEmptyList[NoCharacterWidthFound],
+                                     Double] = {
+    text.foldLeft(0.0.asRight[NonEmptyList[NoCharacterWidthFound]]) {
+      case (Left(nel), char) =>
+        table.widthOfCharCode(char) match {
+          case None if !guess => Left(NoCharacterWidthFound(char) :: nel)
+          case _ => Left(nel)
+        }
+
+      case (Right(acc), char) =>
         table.widthOfCharCode(char) match {
           case Some(value) =>
-            acc + value
+            (acc + value).asRight
           case None =>
-            if (guess) acc + table.emWidth
-            else
-              throw new IllegalArgumentException(
-                s"No width available for character code ${char.toInt}")
+            if (guess) (acc + table.emWidth).asRight
+            else Left(NonEmptyList.of(NoCharacterWidthFound(char)))
         }
     }
+  }
+
+  case class NoCharacterWidthFound(char: Char)
+      extends Throwable(s"No width available for character code ${char.toInt}")
 
 }

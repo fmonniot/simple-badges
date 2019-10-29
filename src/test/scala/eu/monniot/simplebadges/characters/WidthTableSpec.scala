@@ -21,9 +21,8 @@ class WidthTableSpec extends Specification {
   def e2 = load.widthOfCharCode('1') must beSome(69.93)
 
   def e3 =
-    WidthTable.widthOf(load, "v1.2.511") must between(
-      494.77 - 0.1,
-      494.77 + 0.1)
+    WidthTable.widthOf(load, "v1.2.511") must beRight(
+      between(494.77 - 0.1, 494.77 + 0.1))
 
   def a1 =
     WidthTable.ordering.compare((49, 49, 0.0), (48, 57, 1.0)) must beEqualTo(0)
