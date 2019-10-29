@@ -15,12 +15,16 @@ class WidthTableSpec extends Specification {
         return 0 when the x is in the y range $a1
       """
 
-
   def load = WidthTable.load
 
   def e1 = load.widthOfCharCode('m') must beSome(106.99)
   def e2 = load.widthOfCharCode('1') must beSome(69.93)
-  def e3 = WidthTable.widthOf(load, "v1.2.511") must between(494.77 - 0.1, 494.77 + 0.1)
 
-  def a1 = WidthTable.ordering.compare((49, 49, 0.0), (48, 57, 1.0)) must beEqualTo(0)
+  def e3 =
+    WidthTable.widthOf(load, "v1.2.511") must between(
+      494.77 - 0.1,
+      494.77 + 0.1)
+
+  def a1 =
+    WidthTable.ordering.compare((49, 49, 0.0), (48, 57, 1.0)) must beEqualTo(0)
 }

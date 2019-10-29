@@ -4,7 +4,7 @@ import cats.implicits._
 
 import scala.collection.Searching
 
-case class WidthTable private(data: Vector[(Long, Long, Double)]) {
+case class WidthTable private (data: Vector[(Long, Long, Double)]) {
 
   private[characters] lazy val emWidth: Double =
     widthOfCharCode('m').get
@@ -40,8 +40,8 @@ object WidthTable {
       | 3/3 | 2/4 | 0
       | 4/4 | 2/3 | 1
      */
-    override def compare(x: (Long, Long, Double), y: (Long, Long, Double)): Int =
-    {
+    override def compare(x: (Long, Long, Double),
+                         y: (Long, Long, Double)): Int = {
       if (x._1 < y._1) -1
       else if (x._1 > y._2) 1
       else 0
@@ -58,17 +58,19 @@ object WidthTable {
     WidthTable(vec)
   }
 
-
   // TODO Remove the exception and wrap in an Either[String, Double]
   def widthOf(table: WidthTable, text: String, guess: Boolean = true): Double =
-    text.foldLeft(0.0) { case (acc, char) =>
-      table.widthOfCharCode(char) match {
-        case Some(value) =>
-          acc + value
-        case None =>
-          if (guess) acc + table.emWidth
-          else throw new IllegalArgumentException(s"No width available for character code ${char.toInt}")
-      }
+    text.foldLeft(0.0) {
+      case (acc, char) =>
+        table.widthOfCharCode(char) match {
+          case Some(value) =>
+            acc + value
+          case None =>
+            if (guess) acc + table.emWidth
+            else
+              throw new IllegalArgumentException(
+                s"No width available for character code ${char.toInt}")
+        }
     }
 
 }

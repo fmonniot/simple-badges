@@ -3,6 +3,7 @@ package eu.monniot.simplebadges.rendering
 import eu.monniot.simplebadges.characters.WidthTable
 
 object fragments {
+
   def renderLogo(logo: String,
                  logoWidth: Option[Int] = None,
                  logoPadding: Option[Int] = None,
@@ -14,7 +15,8 @@ object fragments {
     val padding = logoPadding.getOrElse(0)
 
     (
-      s"""        <image x="$x" y="$y" width="$width" height="14" xlink:href="${utils.escapeXml(logo)}"/>""",
+      s"""        <image x="$x" y="$y" width="$width" height="14" xlink:href="${utils
+        .escapeXml(logo)}"/>""",
       width + padding
     )
 
@@ -24,8 +26,7 @@ object fragments {
                            content: String,
                            leftMargin: Int = 0,
                            horizontalPadding: Int = 0,
-                           verticalMargin: Int = 0
-                          ): (String, Int) = {
+                           verticalMargin: Int = 0): (String, Int) = {
     val escapedContent = utils.escapeXml(content).getOrElse("")
     val textLength = utils.preferredWidthOf(table, escapedContent) // Missing 10pt
 
@@ -33,7 +34,8 @@ object fragments {
     val textMargin = 140 + verticalMargin
 
     val outTextLength = 10 * textLength
-    val x = (10 * (leftMargin + 0.5 * textLength + 0.5 * horizontalPadding)).toInt
+    val x =
+      (10 * (leftMargin + 0.5 * textLength + 0.5 * horizontalPadding)).toInt
 
     (
       s"""        <text x="$x" y="$shadowMargin" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="$outTextLength" lengthAdjust="spacing">$escapedContent</text>

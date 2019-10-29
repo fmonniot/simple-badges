@@ -15,10 +15,12 @@ class BadgesSpec extends Specification {
             TODO With custom message color
       """
 
+  def e1 =
+    badges.flat(WidthTable.load, message = "v2.8.5", label = Some("maven")) must beEqualTo(
+      mavenV285Badge)
 
-  def e1 = badges.flat(WidthTable.load, message = "v2.8.5", label = Some("maven")) must beEqualTo(mavenV285Badge)
-  def e2 = badges.flat(WidthTable.load, message = "v2.8.5") must beEqualTo(v285Badge)
-
+  def e2 =
+    badges.flat(WidthTable.load, message = "v2.8.5") must beEqualTo(v285Badge)
 
   // Fixtures
 

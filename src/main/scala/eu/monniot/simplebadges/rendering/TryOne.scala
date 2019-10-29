@@ -67,11 +67,11 @@ object TryOne {
 
       s"""<g clip-path="url(#round)">
          |        <rect width="${widths._1}" height="20" fill="${escapeXml(
-        fill1
-      )}"/>
+           fill1
+         )}"/>
          |        <rect x="${widths._1}" width="${widths._2}" height="20" fill="${escapeXml(
-        textColor.getOrElse("#4c1")
-      )}"/>
+           textColor.getOrElse("#4c1")
+         )}"/>
          |        <rect width="${widths._1 + widths._2}" height="20" fill="url(#smooth)"/>
          |    </g>
          |""".stripMargin
@@ -98,7 +98,7 @@ object TryOne {
       val rightText = {
 
         val x = 10 * (widths._1 + (widths._2 / 2) - (if (text._1.nonEmpty) 1
-        else 0))
+                                                     else 0))
         val textLength = (widths._2 - 10) * 10
 
         s"""<text x="$x" y="150" fill="#010101" fill-opacity=".3" transform="scale(0.1)" textLength="$textLength" lengthAdjust="spacing">${escapedText._2}</text>

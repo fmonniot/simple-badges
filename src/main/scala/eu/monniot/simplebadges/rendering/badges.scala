@@ -6,15 +6,15 @@ import eu.monniot.simplebadges.characters.WidthTable
 object badges {
 
   // TODO Add support for links
-  def flat(table: WidthTable,
-           message: String,
-           label: Option[String] = None,
-           logo: Option[String] = None,
-           logoWidth: Option[Int] = None,
-           logoPadding: Option[Int] = None, // Might be simple Int with default at 0
-           labelColo: String = "#555",
-           messageColor: String = "#4c1"
-          ): String = {
+  def flat(
+      table: WidthTable,
+      message: String,
+      label: Option[String] = None,
+      logo: Option[String] = None,
+      logoWidth: Option[Int] = None,
+      logoPadding: Option[Int] = None, // Might be simple Int with default at 0
+      labelColo: String = "#555",
+      messageColor: String = "#4c1"): String = {
     val height = 20
     val hasLabel = label.isDefined
 
@@ -27,21 +27,30 @@ object badges {
     val lPadding = logoPadding.getOrElse(0)
 
     val (renderedLabel, labelWidth) =
-      label.map { l =>
-        fragments.renderTextWithShadow(
-          table,
-          content = l,
-          leftMargin = (lWidth + lPadding) / 2 + 1,
-          horizontalPadding = horizontalPadding * 2
-        ).map(_ + 2 * horizontalPadding)
-      }.getOrElse("", 0)
+      label
+        .map { l =>
+          fragments
+            .renderTextWithShadow(
+              table,
+              content = l,
+              leftMargin = (lWidth + lPadding) / 2 + 1,
+              horizontalPadding = horizontalPadding * 2
+            )
+            .map(_ + 2 * horizontalPadding)
+        }
+        .getOrElse("", 0)
 
     val (renderedMessage, messageWidth) =
-      fragments.renderTextWithShadow(
-        table,
-        content = message,
-        leftMargin = (lWidth + lPadding) / 2 + horizontalPadding + labelWidth - (if (message.nonEmpty) 1 else 0),
-      ).map(_ + 2 * horizontalPadding)
+      fragments
+        .renderTextWithShadow(
+          table,
+          content = message,
+          leftMargin = (lWidth + lPadding) / 2 + horizontalPadding + labelWidth - (if (message.nonEmpty)
+                                                                                     1
+                                                                                   else
+                                                                                     0),
+        )
+        .map(_ + 2 * horizontalPadding)
 
     val leftWidth = labelWidth
     val width = labelWidth + messageWidth
