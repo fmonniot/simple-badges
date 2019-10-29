@@ -15,7 +15,7 @@ case class WidthTable private (data: Vector[(Long, Long, Double)]) {
     val codePoint = char.toLong
     data.search((codePoint, codePoint, 0.0))(WidthTable.ordering) match {
       case Searching.Found(foundIndex) =>
-        data.get(foundIndex).map { case (_, _, width) => width }
+        data.get(foundIndex.toLong).map { case (_, _, width) => width }
       case _ =>
         None
     }
