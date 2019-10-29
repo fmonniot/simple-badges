@@ -4,7 +4,7 @@ import eu.monniot.simplebadges.characters.WidthTable
 
 object utils {
 
-  val FontFamily = """font-family="DejaVu Sans,Verdana,Geneva,sans-serif""""
+  val FontFamily = "DejaVu Sans,Verdana,Geneva,sans-serif"
 
   def escapeXml(s: String): Option[String] =
     Option(s)
