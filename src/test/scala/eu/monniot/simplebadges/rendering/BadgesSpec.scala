@@ -17,7 +17,7 @@ class BadgesSpec extends Specification {
 
 
   def e1 = badges.flat(WidthTable.load, message = "v2.8.5", label = Some("maven")) must beEqualTo(mavenV285Badge)
-  def e2 = skipped(badges.flat(WidthTable.load, message = "v2.8.5") must beEqualTo(mavenV285Badge))
+  def e2 = badges.flat(WidthTable.load, message = "v2.8.5") must beEqualTo(v285Badge)
 
 
   // Fixtures
@@ -46,6 +46,32 @@ class BadgesSpec extends Specification {
       |
       |        <text x="685" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350" lengthAdjust="spacing">v2.8.5</text>
       |        <text x="685" y="140" transform="scale(.1)" textLength="350" lengthAdjust="spacing">v2.8.5</text>
+      |    </g>
+      |</svg>""".stripMargin
+
+  val v285Badge: String =
+    """<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="45" height="20">
+      |    <linearGradient id="smooth" x2="0" y2="100%">
+      |        <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+      |        <stop offset="1" stop-opacity=".1"/>
+      |    </linearGradient>
+      |
+      |    <clipPath id="roundcorner">
+      |        <rect width="45" height="20" rx="3" fill="#fff"/>
+      |    </clipPath>
+      |
+      |    <g clip-path="url(#roundcorner)">
+      |        <rect width="0" height="20" fill="#4c1" />
+      |        <rect x="0" width="45" height="20" fill="#4c1" />
+      |        <rect width="45" height="20" fill="url(#smooth)" />
+      |    </g>
+      |
+      |    <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="110">
+      |
+      |
+      |
+      |        <text x="215" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350" lengthAdjust="spacing">v2.8.5</text>
+      |        <text x="215" y="140" transform="scale(.1)" textLength="350" lengthAdjust="spacing">v2.8.5</text>
       |    </g>
       |</svg>""".stripMargin
 

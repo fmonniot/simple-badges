@@ -36,7 +36,7 @@ object fragments {
     val x = (10 * (leftMargin + 0.5 * textLength + 0.5 * horizontalPadding)).toInt
 
     (
-      s"""<text x="$x" y="$shadowMargin" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="$outTextLength" lengthAdjust="spacing">$escapedContent</text>
+      s"""        <text x="$x" y="$shadowMargin" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="$outTextLength" lengthAdjust="spacing">$escapedContent</text>
          |        <text x="$x" y="$textMargin" transform="scale(.1)" textLength="$outTextLength" lengthAdjust="spacing">$escapedContent</text>""".stripMargin,
       textLength
     )

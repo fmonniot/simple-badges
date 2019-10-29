@@ -33,10 +33,10 @@ object badges {
           content = l,
           leftMargin = (lWidth + lPadding) / 2 + 1,
           horizontalPadding = horizontalPadding * 2
-        )
-      }.getOrElse("", 0).map(_ + 2 * horizontalPadding)
+        ).map(_ + 2 * horizontalPadding)
+      }.getOrElse("", 0)
 
-    val (renderedMessage, messageWidth) = // width missing 10
+    val (renderedMessage, messageWidth) =
       fragments.renderTextWithShadow(
         table,
         content = message,
@@ -44,9 +44,9 @@ object badges {
       ).map(_ + 2 * horizontalPadding)
 
     val leftWidth = labelWidth
-    val width = labelWidth + messageWidth // missing 20
+    val width = labelWidth + messageWidth
 
-
+    // TODO Move to scalaxml (with the xml"" interpolator) ?
     s"""<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="$width" height="$height">
        |    <linearGradient id="smooth" x2="0" y2="100%">
        |        <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
@@ -65,9 +65,9 @@ object badges {
        |
        |    <g fill="#fff" text-anchor="middle" ${utils.FontFamily} font-size="110">
        |${logo.map(fragments.renderLogo(_, logoWidth)._1).getOrElse("")}
-       |        $renderedLabel
+       |$renderedLabel
        |
-       |        $renderedMessage
+       |$renderedMessage
        |    </g>
        |</svg>""".stripMargin
   }
