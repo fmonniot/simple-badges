@@ -1,6 +1,7 @@
-package eu.monniot.simplebadges
+package eu.monniot.simplebadges.http
 
 import cats.effect.IO
+import eu.monniot.simplebadges.services.HelloWorld
 import org.http4s._
 import org.http4s.implicits._
 import org.specs2.matcher.MatchResult
@@ -19,12 +20,16 @@ class HelloWorldSpec extends org.specs2.mutable.Specification {
   private[this] val retHelloWorld: Response[IO] = {
     val getHW = Request[IO](Method.GET, uri"/hello/world")
     val helloWorld = HelloWorld.impl[IO]
-    SimplebadgesRoutes.helloWorldRoutes(helloWorld).orNotFound(getHW).unsafeRunSync()
+    SimplebadgesRoutes
+      .helloWorldRoutes(helloWorld)
+      .orNotFound(getHW)
+      .unsafeRunSync()
   }
 
   private[this] def uriReturns200(): MatchResult[Status] =
     retHelloWorld.status must beEqualTo(Status.Ok)
 
   private[this] def uriReturnsHelloWorld(): MatchResult[String] =
-    retHelloWorld.as[String].unsafeRunSync() must beEqualTo("{\"message\":\"Hello, world\"}")
+    retHelloWorld.as[String].unsafeRunSync() must beEqualTo(
+      "{\"message\":\"Hello, world\"}")
 }

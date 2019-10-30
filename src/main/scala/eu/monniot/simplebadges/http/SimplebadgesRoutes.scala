@@ -1,14 +1,15 @@
-package eu.monniot.simplebadges
+package eu.monniot.simplebadges.http
 
-import cats.effect.Sync
 import cats.implicits._
+import cats.effect.Sync
+import eu.monniot.simplebadges.services.{HelloWorld, Jokes}
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 
 object SimplebadgesRoutes {
 
   def jokeRoutes[F[_]: Sync](J: Jokes[F]): HttpRoutes[F] = {
-    val dsl = new Http4sDsl[F]{}
+    val dsl = new Http4sDsl[F] {}
     import dsl._
     HttpRoutes.of[F] {
       case GET -> Root / "joke" =>
@@ -20,7 +21,7 @@ object SimplebadgesRoutes {
   }
 
   def helloWorldRoutes[F[_]: Sync](H: HelloWorld[F]): HttpRoutes[F] = {
-    val dsl = new Http4sDsl[F]{}
+    val dsl = new Http4sDsl[F] {}
     import dsl._
     HttpRoutes.of[F] {
       case GET -> Root / "hello" / name =>
