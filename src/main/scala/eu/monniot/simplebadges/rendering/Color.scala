@@ -51,6 +51,11 @@ object Color {
   def fromCss(string: String): Either[String, Color] =
     fromCssHex(string).orElse(fromCssRgb(string)).orElse(fromCssNamed(string))
 
+  // This only exists because there is some part of the code where we can't use the macro
+  // (same compilation unit)
+  private[simplebadges] def unsafeFromString(string: String): Color =
+    fromCss(string).fold(e => throw new RuntimeException(e), identity)
+
   //
   // Type classes
   //

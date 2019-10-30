@@ -2,6 +2,7 @@ package eu.monniot.simplebadges.rendering
 
 import cats.implicits._
 import eu.monniot.simplebadges.characters.WidthTable
+import Color._
 
 object badges {
 
@@ -13,14 +14,10 @@ object badges {
       logo: Option[String] = None,
       logoWidth: Option[Int] = None,
       logoPadding: Option[Int] = None, // Might be simple Int with default at 0
-      labelColo: String = "#555",
-      messageColor: String = "#4c1"): xml.Elem = {
+      labelColor: Option[Color] = None,
+      messageColor: Option[Color] = None): xml.Elem = {
     val height = 20
     val hasLabel = label.isDefined
-
-    val labelColor: String = if (hasLabel) labelColo else messageColor
-
-    // TODO Validate the colors (probably a newtype)
 
     val horizontalPadding = 5
     val loWidth = logoWidth.getOrElse(0)
@@ -58,6 +55,9 @@ object badges {
     val leftWidth = labelWidth
     val width = labelWidth + messageWidth
 
+    val lblColor = labelColor.getOrElse(Color.unsafeFromString("#555")).show
+    val msgColor = messageColor.getOrElse(Color.unsafeFromString("#4c1")).show
+
     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width={width.toString} height={height.toString}>
       <linearGradient id="smooth" x2="0" y2="100%">
         <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
@@ -69,8 +69,8 @@ object badges {
       </clipPath>
 
       <g clip-path="url(#roundcorner)">
-        <rect width={leftWidth.toString} height={height.toString} fill={labelColor.toString}/>
-        <rect x={leftWidth.toString} width={messageWidth.toString} height={height.toString} fill={messageColor.toString}/>
+        <rect width={leftWidth.toString} height={height.toString} fill={if (hasLabel) lblColor else msgColor}/>
+        <rect x={leftWidth.toString} width={messageWidth.toString} height={height.toString} fill={msgColor}/>
         <rect width={width.toString} height={height.toString} fill="url(#smooth)"/>
       </g>
 

@@ -1,9 +1,12 @@
 package eu.monniot.simplebadges.rendering
 
-import eu.monniot.simplebadges.characters.WidthTable
+import cats.implicits._
 import org.specs2.Specification
 import org.specs2.matcher.XmlMatchers
 
+import Color._
+
+//noinspection TypeAnnotation
 class BadgesSpec extends Specification with XmlMatchers {
 
   override def is =
@@ -40,21 +43,21 @@ class BadgesSpec extends Specification with XmlMatchers {
       unsafeVerdanaTable,
       message = "v2.8.5",
       label = Some("maven"),
-      labelColo = "#999") must beEqualToIgnoringSpace(
-      mavenV285Badge(lblColor = "#999"))
+      labelColor = Some(color"#999")) must beEqualToIgnoringSpace(
+      mavenV285Badge(lblColor = color"#999"))
 
   def e5 =
     badges.flat(
       unsafeVerdanaTable,
       message = "v2.8.5",
       label = Some("maven"),
-      messageColor = "#999") must beEqualToIgnoringSpace(
-      mavenV285Badge(msgColor = "#999"))
+      messageColor = Some(color"#999")) must beEqualToIgnoringSpace(
+      mavenV285Badge(msgColor = color"#999"))
 
   // Fixtures
 
-  def mavenV285Badge(msgColor: String = "#4c1",
-                     lblColor: String = "#555"): xml.Elem =
+  def mavenV285Badge(msgColor: Color = color"#4c1",
+                     lblColor: Color = color"#555"): xml.Elem =
     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="92" height="20">
       <linearGradient id="smooth" x2="0" y2="100%">
         <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
@@ -66,8 +69,8 @@ class BadgesSpec extends Specification with XmlMatchers {
       </clipPath>
 
       <g clip-path="url(#roundcorner)">
-        <rect width="47" height="20" fill={lblColor}/>
-        <rect x="47" width="45" height="20" fill={msgColor}/>
+        <rect width="47" height="20" fill={lblColor.show}/>
+        <rect x="47" width="45" height="20" fill={msgColor.show}/>
         <rect width="92" height="20" fill="url(#smooth)"/>
       </g>
 
