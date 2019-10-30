@@ -1,5 +1,8 @@
 package eu.monniot.simplebadges.characters
 
+import java.nio.file.Paths
+
+import cats.effect.{Blocker, IO}
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure
 
@@ -15,15 +18,27 @@ class WidthTableSpec extends Specification {
         return 0 when the x is in the y range $a1
       """
 
-  def load = WidthTable.load
+  import WidthTableSpec.unsafeVerdanaTable
 
-  def e1 = load.widthOfCharCode('m') must beSome(106.99)
-  def e2 = load.widthOfCharCode('1') must beSome(69.93)
+  def e1 = unsafeVerdanaTable.widthOfCharCode('m') must beSome(106.99)
+  def e2 = unsafeVerdanaTable.widthOfCharCode('1') must beSome(69.93)
 
   def e3 =
-    WidthTable.widthOf(load, "v1.2.511") must beRight(
+    WidthTable.widthOf(unsafeVerdanaTable, "v1.2.511") must beRight(
       between(494.77 - 0.1, 494.77 + 0.1))
 
   def a1 =
     WidthTable.ordering.compare((49, 49, 0.0), (48, 57, 1.0)) must beEqualTo(0)
+}
+
+object WidthTableSpec {
+
+  def unsafeVerdanaTable: WidthTable = {
+    implicit val cs = IO.contextShift(scala.concurrent.ExecutionContext.global)
+    val blocker = Blocker[IO]
+
+    val te = blocker.use(b => WidthTable.verdanaTable[IO](b))
+
+    te.unsafeRunSync()
+  }
 }

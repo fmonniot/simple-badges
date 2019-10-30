@@ -16,18 +16,20 @@ class BadgesSpec extends Specification with XmlMatchers {
             Can render with custom message color $e5
       """
 
+  import eu.monniot.simplebadges.characters.WidthTableSpec.unsafeVerdanaTable
+
   def e1 =
-    badges.flat(WidthTable.load, message = "v2.8.5", label = Some("maven")) must beEqualToIgnoringSpace(
+    badges.flat(unsafeVerdanaTable, message = "v2.8.5", label = Some("maven")) must beEqualToIgnoringSpace(
       mavenV285Badge())
 
   def e2 =
-    badges.flat(WidthTable.load, message = "v2.8.5") must beEqualToIgnoringSpace(
+    badges.flat(unsafeVerdanaTable, message = "v2.8.5") must beEqualToIgnoringSpace(
       v285Badge)
 
   def e3 =
     skipped {
       badges.flat(
-        WidthTable.load,
+        unsafeVerdanaTable,
         message = "flat",
         label = Some("style"),
         logo = Some(logo)) must beEqualToIgnoringSpace(styleFlatLogoBadge)
@@ -35,7 +37,7 @@ class BadgesSpec extends Specification with XmlMatchers {
 
   def e4 =
     badges.flat(
-      WidthTable.load,
+      unsafeVerdanaTable,
       message = "v2.8.5",
       label = Some("maven"),
       labelColo = "#999") must beEqualToIgnoringSpace(
@@ -43,7 +45,7 @@ class BadgesSpec extends Specification with XmlMatchers {
 
   def e5 =
     badges.flat(
-      WidthTable.load,
+      unsafeVerdanaTable,
       message = "v2.8.5",
       label = Some("maven"),
       messageColor = "#999") must beEqualToIgnoringSpace(

@@ -1,7 +1,12 @@
 package eu.monniot.simplebadges.characters
 
+import java.nio.file.Paths
+
 import cats.data.NonEmptyList
+import cats.effect.{Blocker, ContextShift, Sync}
 import cats.implicits._
+import io.circe
+import io.circe.{DecodingFailure, Json}
 
 import scala.collection.Searching
 
@@ -49,15 +54,40 @@ object WidthTable {
     }
   }
 
-  // TODO Error management + extract I/O loading from here
-  def load: WidthTable = {
-    val text = scala.io.Source.fromResource("verdana-table.json").mkString
-    val json = io.circe.jawn.parse(text).getOrElse(null)
+  def verdanaTable[F[_]: ContextShift](blocker: Blocker)(
+      implicit F: Sync[F]): F[WidthTable] =
+    for {
+      path <- F.delay(Paths.get {
+        WidthTable.getClass.getClassLoader
+          .getResource("verdana-table.json")
+          .toURI
+      })
+      table <- WidthTable
+        .fromStream(fs2.io.file.readAll(path, blocker, chunkSize = 1024))
+        .flatMap {
+          case Left(e) => F.raiseError[WidthTable](e)
+          case Right(t) => F.pure(t)
+        }
+    } yield table
 
-    val vec = json.asArray.get.map(_.as[(Long, Long, Double)].getOrElse(null))
+  def fromStream[F[_]: Sync](
+      stream: fs2.Stream[F, Byte]): F[Either[Exception, WidthTable]] = {
+    import io.circe.jawn.CirceSupportParser.facade
+    import jawnfs2._
 
-    WidthTable(vec)
+    stream.chunks.runJsonOption
+      .map {
+        case None =>
+          new IllegalStateException("The given stream did not contains a JSON").asLeft
+        case Some(json) => fromJson(json)
+      }
   }
+
+  def fromString(str: String): Either[circe.Error, WidthTable] =
+    io.circe.jawn.parse(str).flatMap(fromJson)
+
+  def fromJson(json: Json): Either[DecodingFailure, WidthTable] =
+    json.as[Vector[(Long, Long, Double)]].map(WidthTable(_))
 
   /** Provides an estimate of the given ''text'' based on the given [[WidthTable]].
    *
