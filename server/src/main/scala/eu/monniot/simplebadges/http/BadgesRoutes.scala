@@ -37,7 +37,10 @@ object BadgesRoutes {
           .map(_.headOption)
           .map {
             case Some(tag) =>
-              badges.flat(table, message = tag.name, label = Some("version"))
+              badges.flat(
+                table,
+                message = tag.name.stripPrefix("v"),
+                label = Some("version"))
             case None =>
               badges
                 .flat(
