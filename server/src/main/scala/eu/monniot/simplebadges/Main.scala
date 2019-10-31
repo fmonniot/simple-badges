@@ -4,7 +4,7 @@ import cats.effect._
 import cats.implicits._
 import eu.monniot.badges.WidthTable
 import eu.monniot.simplebadges.http.{BadgesRoutes, SimplebadgesRoutes}
-import eu.monniot.simplebadges.services.{HelloWorld, Jokes}
+import eu.monniot.simplebadges.services.{Gitlab, HelloWorld, Jokes}
 import fs2.Stream
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.implicits._
@@ -24,6 +24,9 @@ object Main extends IOApp {
       client <- BlazeClientBuilder[F](global).stream
       helloWorldAlg = HelloWorld.impl[F]
       jokeAlg = Jokes.impl[F](client)
+      gitlab = Gitlab.impl(
+        client,
+        Gitlab.GitlabConfig(uri"https://gitlab.com/", ""))
 
       blocker <- Stream.resource(Blocker[F])
       widthTable <- Stream.eval(WidthTable.verdanaTable[F](blocker))
@@ -33,9 +36,10 @@ object Main extends IOApp {
       // want to extract a segments not checked
       // in the underlying routes.
       httpApp = (
-        SimplebadgesRoutes.helloWorldRoutes[F](helloWorldAlg) <+>
-          SimplebadgesRoutes.jokeRoutes[F](jokeAlg) <+>
-          BadgesRoutes.custom[F](widthTable)
+        SimplebadgesRoutes.helloWorldRoutes(helloWorldAlg) <+>
+          SimplebadgesRoutes.jokeRoutes(jokeAlg) <+>
+          BadgesRoutes.custom(widthTable) <+>
+          BadgesRoutes.gitlab(widthTable, gitlab)
       ).orNotFound
 
       // With Middlewares in place

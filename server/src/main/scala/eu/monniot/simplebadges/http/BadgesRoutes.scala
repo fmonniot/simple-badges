@@ -4,6 +4,7 @@ import cats.effect.Sync
 import cats.implicits._
 import eu.monniot.badges.WidthTable
 import eu.monniot.badges.rendering.badges
+import eu.monniot.simplebadges.services.Gitlab
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 
@@ -20,6 +21,31 @@ object BadgesRoutes {
 
       case GET -> Root / "badge" / message =>
         Ok(badges.flat(table, message))
+    }
+  }
+
+  def gitlab[F[_]: Sync](table: WidthTable,
+                         gitlab: Gitlab[F]): HttpRoutes[F] = {
+    val dsl = new Http4sDsl[F] {}
+    import dsl._
+    import eu.monniot.badges.rendering.Color._
+
+    HttpRoutes.of[F] {
+      case GET -> Root / "gitlap" / IntVar(projectId) =>
+        gitlab
+          .tags(projectId)
+          .map(_.headOption)
+          .map {
+            case Some(tag) =>
+              badges.flat(table, message = tag.name, label = Some("version"))
+            case None =>
+              badges
+                .flat(
+                  table,
+                  message = "No tags found",
+                  messageColor = Some(color"lightgrey"))
+          }
+          .flatMap(Ok(_))
     }
   }
 }
