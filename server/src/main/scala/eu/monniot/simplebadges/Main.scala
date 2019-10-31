@@ -22,14 +22,14 @@ object Main extends IOApp {
   def server[F[_]: ConcurrentEffect](implicit T: Timer[F],
                                      C: ContextShift[F]): Stream[F, ExitCode] =
     for {
+      config <- Stream.eval(Config.load[F])
       client <- BlazeClientBuilder[F](global).stream
+      blocker <- Stream.resource(Blocker[F])
+
       helloWorldAlg = HelloWorld.impl[F]
       jokeAlg = Jokes.impl[F](client)
-      gitlab = Gitlab.impl(
-        client,
-        Gitlab.GitlabConfig(uri"https://gitlab.com/", ""))
+      gitlab = Gitlab.impl(client, config.gitlab)
 
-      blocker <- Stream.resource(Blocker[F])
       widthTable <- Stream.eval(WidthTable.verdanaTable[F](blocker))
 
       // Combine Service Routes into an HttpApp.
@@ -47,7 +47,7 @@ object Main extends IOApp {
       finalHttpApp = Logger.httpApp(logHeaders = true, logBody = true)(httpApp)
 
       exitCode <- BlazeServerBuilder[F]
-        .bindHttp(8080, "0.0.0.0")
+        .bindHttp(config.http.port, config.http.host)
         .withHttpApp(finalHttpApp)
         .serve
     } yield exitCode
