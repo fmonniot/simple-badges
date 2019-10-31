@@ -1,8 +1,10 @@
 package eu.monniot.simplebadges
 
-import cats.effect.{ConcurrentEffect, ContextShift, ExitCode, IO, IOApp, Timer}
+import cats.effect._
 import cats.implicits._
+import eu.monniot.badges.WidthTable
 import eu.monniot.simplebadges.http.SimplebadgesRoutes
+import eu.monniot.simplebadges.services.{HelloWorld, Jokes}
 import fs2.Stream
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.implicits._
