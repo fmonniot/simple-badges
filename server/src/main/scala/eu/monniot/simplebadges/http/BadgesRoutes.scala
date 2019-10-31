@@ -12,14 +12,14 @@ object BadgesRoutes {
 
   import org.http4s.scalaxml._
 
-  def custom[F[_]: Sync](table: WidthTable): HttpRoutes[F] = {
+  def generic[F[_]: Sync](table: WidthTable): HttpRoutes[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
     HttpRoutes.of[F] {
-      case GET -> Root / "badge" / label / message =>
+      case GET -> Root / "generic" / label / message =>
         Ok(badges.flat(table, message, label.some))
 
-      case GET -> Root / "badge" / message =>
+      case GET -> Root / "generic" / message =>
         Ok(badges.flat(table, message))
     }
   }
@@ -31,7 +31,7 @@ object BadgesRoutes {
     import eu.monniot.badges.rendering.Color._
 
     HttpRoutes.of[F] {
-      case GET -> Root / "gitlap" / IntVar(projectId) =>
+      case GET -> Root / "gitlab" / IntVar(projectId) =>
         gitlab
           .tags(projectId)
           .map(_.headOption)

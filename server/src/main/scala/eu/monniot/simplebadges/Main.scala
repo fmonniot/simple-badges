@@ -8,6 +8,7 @@ import eu.monniot.simplebadges.services.{Gitlab, HelloWorld, Jokes}
 import fs2.Stream
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.implicits._
+import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.Logger
 
@@ -35,11 +36,11 @@ object Main extends IOApp {
       // Can also be done via a Router if you
       // want to extract a segments not checked
       // in the underlying routes.
-      httpApp = (
-        SimplebadgesRoutes.helloWorldRoutes(helloWorldAlg) <+>
-          SimplebadgesRoutes.jokeRoutes(jokeAlg) <+>
-          BadgesRoutes.custom(widthTable) <+>
-          BadgesRoutes.gitlab(widthTable, gitlab)
+      httpApp = Router(
+        "/api" -> (SimplebadgesRoutes.helloWorldRoutes(helloWorldAlg) <+>
+          SimplebadgesRoutes.jokeRoutes(jokeAlg)),
+        "/badges" -> (BadgesRoutes.generic[F](widthTable) <+> BadgesRoutes
+          .gitlab(widthTable, gitlab))
       ).orNotFound
 
       // With Middlewares in place
