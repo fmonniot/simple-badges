@@ -34,4 +34,34 @@ scalacOptions ++= Seq(
   "-language:experimental.macros",
   "-feature",
   "-Xfatal-warnings",
+lazy val badges = (project in file("./badges"))
+  .settings(commons)
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats-effect" % "2.0.0-M5",
+      "co.fs2"                 %% "fs2-io"               % "1.1.0-M1",
+      "io.circe"               %% "circe-generic"        % CirceVersion,
+      "io.circe"               %% "circe-jawn"        % CirceVersion,
+      "org.http4s"             %% "jawn-fs2"         % "0.15.0-M1",
+    "org.scala-lang.modules" %% "scala-xml"            % ScalaXmlVersion,
+    "org.specs2"             %% "specs2-core"          % Specs2Version % Test,
+    "org.specs2"             %% "specs2-matcher-extra" % Specs2Version % Test,
+    )
+  )
+
+lazy val commons = Seq(
+  organization := "eu.monniot",
+  name := "simple-badges",
+  version := "0.0.1-SNAPSHOT",
+  scalaVersion := "2.13.0",
+  scalacOptions ++= Seq(
+    "-deprecation",
+    "-encoding",
+    "UTF-8",
+    "-language:higherKinds",
+    "-language:postfixOps",
+    "-language:experimental.macros",
+    "-feature",
+    "-Xfatal-warnings",
+  )
 )
