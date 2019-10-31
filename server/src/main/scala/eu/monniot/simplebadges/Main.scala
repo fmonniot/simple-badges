@@ -3,7 +3,7 @@ package eu.monniot.simplebadges
 import cats.effect._
 import cats.implicits._
 import eu.monniot.badges.WidthTable
-import eu.monniot.simplebadges.http.SimplebadgesRoutes
+import eu.monniot.simplebadges.http.{BadgesRoutes, SimplebadgesRoutes}
 import eu.monniot.simplebadges.services.{HelloWorld, Jokes}
 import fs2.Stream
 import org.http4s.client.blaze.BlazeClientBuilder
@@ -25,13 +25,17 @@ object Main extends IOApp {
       helloWorldAlg = HelloWorld.impl[F]
       jokeAlg = Jokes.impl[F](client)
 
+      blocker <- Stream.resource(Blocker[F])
+      widthTable <- Stream.eval(WidthTable.verdanaTable[F](blocker))
+
       // Combine Service Routes into an HttpApp.
       // Can also be done via a Router if you
       // want to extract a segments not checked
       // in the underlying routes.
       httpApp = (
         SimplebadgesRoutes.helloWorldRoutes[F](helloWorldAlg) <+>
-          SimplebadgesRoutes.jokeRoutes[F](jokeAlg)
+          SimplebadgesRoutes.jokeRoutes[F](jokeAlg) <+>
+          BadgesRoutes.custom[F](widthTable)
       ).orNotFound
 
       // With Middlewares in place
