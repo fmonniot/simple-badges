@@ -14,6 +14,8 @@ import org.http4s.implicits._
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.{EntityDecoder, EntityEncoder, Headers, Request, Uri}
 
+import scala.util.control.NoStackTrace
+
 trait Gitlab[F[_]] {
   def tags(projectId: Int): F[List[Gitlab.Tag]]
 }
@@ -27,9 +29,11 @@ object Gitlab {
     implicit val tagDecoder: Decoder[Tag] = deriveDecoder
   }
 
-  final case class GitlabError(e: Throwable) extends RuntimeException
+  final case class GitlabError(e: Throwable)
+      extends RuntimeException(e)
+      with NoStackTrace
 
-  case class GitlabConfig(base: Uri, token: String)
+  case class GitlabConfig(base: Uri, token: Option[String])
 
   def impl[F[_]: Sync](client: Client[F], config: GitlabConfig): Gitlab[F] =
     new Gitlab[F] {
@@ -40,15 +44,22 @@ object Gitlab {
       implicit private def jsonED[T: Decoder]: EntityDecoder[F, T] =
         jsonOf[F, T]
 
+      private def authorization =
+        config.token.fold(Headers.empty) { value =>
+          Headers.of(
+            Authorization(Token(CaseInsensitiveString("Bearer"), value))
+          )
+        }
+
       override def tags(projectId: Int): F[List[Tag]] =
         client
           .expect[List[Tag]](
             Request[F](
               method = GET,
               uri = config.base / "projects" / projectId.toString / "repository" / "tags",
-              headers = Headers.of(Authorization(
-                Token(CaseInsensitiveString("Bearer"), config.token)))
-            ))
+              headers = authorization
+            )
+          )
           .adaptError { case t => GitlabError(t) }
     }
 }
