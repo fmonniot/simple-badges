@@ -19,8 +19,15 @@ object Cached {
   sealed trait State[F[_], A]
   case class NoValue[F[_], A]() extends State[F, A]
   case class Value[F[_], A](a: A) extends State[F, A]
-  case class Updating[F[_], A](update: Deferred[F, Either[Throwable, A]])
-      extends State[F, A]
+
+  // Concurrent bound is too high (strictly: MonadError + Applicative), but given it's already required
+  // by the constructor
+  case class Updating[F[_]: Concurrent, A](
+      update: Deferred[F, Either[Throwable, A]],
+      previous: Option[A])
+      extends State[F, A] {
+    def value: F[A] = previous.fold(update.get.rethrow)(_.pure[F])
+  }
 
   def create[F[_]: Concurrent, A](getA: F[A]): F[Cached[F, A]] = {
 
@@ -30,15 +37,13 @@ object Cached {
           Deferred[F, Either[Throwable, A]].flatMap { d =>
             state.modify {
               case NoValue() =>
-                // TODO Here we will probably want to make a distinction between initial fetch
-                // TODO and a refresh of the value (no previous value vs one)
-                Updating(d) -> fetch(d).rethrow
+                Updating(d, None) -> fetch(d).rethrow
 
               case s @ Value(a) =>
-                s -> a.pure[F] // TODO Also needs to start an update to refresh
+                s -> a.pure[F] // TODO Also needs to start an update to refresh if stale
 
-              case s @ Updating(d) =>
-                (s, d.get.rethrow)
+              case s: Updating[F, A] =>
+                (s, s.value)
             }.flatten
           }
 
@@ -60,7 +65,7 @@ object Cached {
             state.modify {
               case st @ Value(a) =>
                 st -> d.complete(Right(a)).attempt.void
-              case NoValue() | Updating(_) =>
+              case NoValue() | Updating(_, _) =>
                 val error = new RuntimeException(
                   "Fetching cancelled, couldn't retrieve value")
                 NoValue[F, A]() -> d.complete(Left(error)).attempt.void
