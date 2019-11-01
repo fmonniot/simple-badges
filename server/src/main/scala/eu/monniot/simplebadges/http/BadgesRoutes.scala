@@ -24,8 +24,7 @@ object BadgesRoutes {
     }
   }
 
-  def gitlab[F[_]: Sync](table: WidthTable,
-                         tagCache: TagCache[F]): HttpRoutes[F] = {
+  def gitlab[F[_]: Sync](table: WidthTable, tagCache: TagCache[F]): HttpRoutes[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
     import eu.monniot.badges.rendering.Color._
@@ -36,16 +35,9 @@ object BadgesRoutes {
           .latest(projectId)
           .map {
             case Some(tag) =>
-              badges.flat(
-                table,
-                message = tag.name.stripPrefix("v"),
-                label = Some("version"))
+              badges.flat(table, message = tag.name.stripPrefix("v"), label = Some("version"))
             case None =>
-              badges
-                .flat(
-                  table,
-                  message = "No tags found",
-                  messageColor = Some(color"lightgrey"))
+              badges.flat(table, message = "No tags found", messageColor = Some(color"lightgrey"))
           }
           .flatMap(Ok(_))
     }

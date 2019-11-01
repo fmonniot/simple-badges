@@ -34,15 +34,15 @@ object Main extends IOApp {
 
       tagCache <- Stream.eval(TagCache.create(gitlab))
 
-      // Combine Service Routes into an HttpApp.
-      // Can also be done via a Router if you
-      // want to extract a segments not checked
-      // in the underlying routes.
       httpApp = Router(
-        "/api" -> (SimplebadgesRoutes.helloWorldRoutes(helloWorldAlg) <+>
-          SimplebadgesRoutes.jokeRoutes(jokeAlg)),
-        "/badges" -> (BadgesRoutes.generic[F](widthTable) <+> BadgesRoutes
-          .gitlab(widthTable, tagCache))
+        "/api" -> {
+          SimplebadgesRoutes.helloWorldRoutes(helloWorldAlg) <+>
+            SimplebadgesRoutes.jokeRoutes(jokeAlg)
+        },
+        "/badges" -> {
+          BadgesRoutes.generic[F](widthTable) <+>
+            BadgesRoutes.gitlab(widthTable, tagCache)
+        }
       ).orNotFound
 
       // With Middlewares in place

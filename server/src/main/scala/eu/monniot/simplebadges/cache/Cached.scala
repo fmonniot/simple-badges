@@ -22,9 +22,8 @@ object Cached {
 
   // Concurrent bound is too high (strictly: MonadError + Applicative), but given it's already required
   // by the constructor
-  case class Updating[F[_]: Concurrent, A](
-      update: Deferred[F, Either[Throwable, A]],
-      previous: Option[A])
+  case class Updating[F[_]: Concurrent, A](update: Deferred[F, Either[Throwable, A]],
+                                           previous: Option[A])
       extends State[F, A] {
     def value: F[A] = previous.fold(update.get.rethrow)(_.pure[F])
   }
@@ -43,8 +42,7 @@ object Cached {
                 // Refreshing values unconditionally, which may not be what we want here.
                 // This basically mean that we just make sure to have only one concurrent
                 // call to the underlying `getA` at any time.
-                Updating(d, Some(a)) -> (fetch(d).attempt.start.void >> a
-                  .pure[F])
+                Updating(d, Some(a)) -> (fetch(d).attempt.start.void >> a.pure[F])
 
               case s: Updating[F, A] =>
                 // Value is being updated, return previous value or wait for new one to be available
@@ -71,8 +69,7 @@ object Cached {
               case st @ Value(a) =>
                 st -> d.complete(Right(a)).attempt.void
               case NoValue() | Updating(_, _) =>
-                val error = new RuntimeException(
-                  "Fetching cancelled, couldn't retrieve value")
+                val error = new RuntimeException("Fetching cancelled, couldn't retrieve value")
                 NoValue[F, A]() -> d.complete(Left(error)).attempt.void
             }
           }

@@ -24,11 +24,9 @@ object Config {
   // Imports the definition until `com.github.pureconfig:pureconfig-http4s`
   // get published for 2.13 (waiting for a stable http4s release)
   implicit val uriReader: ConfigReader[Uri] =
-    ConfigReader.fromString(
-      str =>
-        Uri
-          .fromString(str)
-          .fold(
-            err => Left(CannotConvert(str, "Uri", err.sanitized)),
-            uri => Right(uri)))
+    ConfigReader.fromString { str =>
+      Uri
+        .fromString(str)
+        .fold(err => Left(CannotConvert(str, "Uri", err.sanitized)), uri => Right(uri))
+    }
 }
