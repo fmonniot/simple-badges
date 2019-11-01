@@ -4,7 +4,7 @@ import cats.effect.Sync
 import cats.implicits._
 import eu.monniot.badges.WidthTable
 import eu.monniot.badges.rendering.badges
-import eu.monniot.simplebadges.services.Gitlab
+import eu.monniot.simplebadges.services.TagCache
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 
@@ -25,16 +25,15 @@ object BadgesRoutes {
   }
 
   def gitlab[F[_]: Sync](table: WidthTable,
-                         gitlab: Gitlab[F]): HttpRoutes[F] = {
+                         tagCache: TagCache[F]): HttpRoutes[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
     import eu.monniot.badges.rendering.Color._
 
     HttpRoutes.of[F] {
       case GET -> Root / "gitlab" / IntVar(projectId) =>
-        gitlab
-          .tags(projectId)
-          .map(_.headOption)
+        tagCache
+          .latest(projectId)
           .map {
             case Some(tag) =>
               badges.flat(

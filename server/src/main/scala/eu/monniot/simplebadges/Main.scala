@@ -4,7 +4,7 @@ import cats.effect._
 import cats.implicits._
 import eu.monniot.badges.WidthTable
 import eu.monniot.simplebadges.http.{BadgesRoutes, SimplebadgesRoutes}
-import eu.monniot.simplebadges.services.{Gitlab, HelloWorld, Jokes}
+import eu.monniot.simplebadges.services.{Gitlab, HelloWorld, Jokes, TagCache}
 import fs2.Stream
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.implicits._
@@ -32,6 +32,8 @@ object Main extends IOApp {
 
       widthTable <- Stream.eval(WidthTable.verdanaTable[F](blocker))
 
+      tagCache <- Stream.eval(TagCache.create(gitlab))
+
       // Combine Service Routes into an HttpApp.
       // Can also be done via a Router if you
       // want to extract a segments not checked
@@ -40,7 +42,7 @@ object Main extends IOApp {
         "/api" -> (SimplebadgesRoutes.helloWorldRoutes(helloWorldAlg) <+>
           SimplebadgesRoutes.jokeRoutes(jokeAlg)),
         "/badges" -> (BadgesRoutes.generic[F](widthTable) <+> BadgesRoutes
-          .gitlab(widthTable, gitlab))
+          .gitlab(widthTable, tagCache))
       ).orNotFound
 
       // With Middlewares in place
