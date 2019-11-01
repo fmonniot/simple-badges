@@ -29,20 +29,25 @@ object Cached {
     def value: F[A] = previous.fold(update.get.rethrow)(_.pure[F])
   }
 
-  def create[F[_]: Concurrent, A](getA: F[A]): F[Cached[F, A]] = {
-
+  def create[F[_]: Concurrent, A](getA: F[A]): F[Cached[F, A]] =
     Ref.of(NoValue[F, A](): State[F, A]).map { state =>
       new Cached[F, A] {
         override def get: F[A] =
           Deferred[F, Either[Throwable, A]].flatMap { d =>
             state.modify {
               case NoValue() =>
+                // get new value and wait for it to be available
                 Updating(d, None) -> fetch(d).rethrow
 
-              case s @ Value(a) =>
-                s -> a.pure[F] // TODO Also needs to start an update to refresh if stale
+              case Value(a) =>
+                // Refreshing values unconditionally, which may not be what we want here.
+                // This basically mean that we just make sure to have only one concurrent
+                // call to the underlying `getA` at any time.
+                Updating(d, Some(a)) -> (fetch(d).attempt.start.void >> a
+                  .pure[F])
 
               case s: Updating[F, A] =>
+                // Value is being updated, return previous value or wait for new one to be available
                 (s, s.value)
             }.flatten
           }
@@ -75,5 +80,4 @@ object Cached {
         }
       }
     }
-  }
 }
