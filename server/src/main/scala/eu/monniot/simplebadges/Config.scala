@@ -3,6 +3,7 @@ package eu.monniot.simplebadges
 import cats.effect.Sync
 import eu.monniot.simplebadges.Config.HttpServerConfig
 import eu.monniot.simplebadges.services.Gitlab.GitlabConfig
+import eu.monniot.simplebadges.services.TagCache.TagCacheConfig
 import org.http4s.Uri
 import pureconfig.error.CannotConvert
 import pureconfig.{ConfigReader, ConfigSource}
@@ -11,7 +12,8 @@ import pureconfig.module.catseffect._
 
 case class Config(
     gitlab: GitlabConfig,
-    http: HttpServerConfig
+    http: HttpServerConfig,
+    tagCache: TagCacheConfig
 )
 
 object Config {

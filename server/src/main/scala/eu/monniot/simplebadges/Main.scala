@@ -32,7 +32,7 @@ object Main extends IOApp {
 
       widthTable <- Stream.eval(WidthTable.verdanaTable[F](blocker))
 
-      tagCache <- Stream.eval(TagCache.create(gitlab))
+      tagCache <- Stream.eval(TagCache.create(gitlab, config.tagCache))
 
       httpApp = Router(
         "/api" -> {

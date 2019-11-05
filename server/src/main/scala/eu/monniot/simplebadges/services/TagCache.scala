@@ -1,9 +1,11 @@
 package eu.monniot.simplebadges.services
 
-import cats.effect.Concurrent
+import cats.effect.{Clock, Concurrent}
 import cats.implicits._
 import eu.monniot.simplebadges.cache.CacheMap
 import eu.monniot.simplebadges.services.Gitlab.Tag
+
+import scala.concurrent.duration.FiniteDuration
 
 sealed trait TagCache[F[_]] {
   def latest(projectId: Int): F[Option[Tag]]
@@ -11,9 +13,11 @@ sealed trait TagCache[F[_]] {
 
 object TagCache {
 
-  def create[F[_]: Concurrent](gitlab: Gitlab[F]): F[TagCache[F]] =
+  case class TagCacheConfig(keyExpiration: FiniteDuration)
+
+  def create[F[_]: Concurrent: Clock](gitlab: Gitlab[F], config: TagCacheConfig): F[TagCache[F]] =
     CacheMap
-      .create((id: Int) => gitlab.tags(id).map(_.headOption))
+      .create((id: Int) => gitlab.tags(id).map(_.headOption), config.keyExpiration)
       .map { cache =>
         new TagCache[F] {
           override def latest(projectId: Int): F[Option[Tag]] =
