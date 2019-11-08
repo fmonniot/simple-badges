@@ -7,7 +7,7 @@ import eu.monniot.simplebadges.services.Gitlab.Tag
 
 import scala.concurrent.duration.FiniteDuration
 
-sealed trait TagCache[F[_]] {
+trait TagCache[F[_]] {
   def latest(projectId: Int): F[Option[Tag]]
 }
 
@@ -18,11 +18,6 @@ object TagCache {
   def create[F[_]: Concurrent: Clock](gitlab: Gitlab[F], config: TagCacheConfig): F[TagCache[F]] =
     CacheMap
       .create((id: Int) => gitlab.tags(id).map(_.headOption), config.keyExpiration)
-      .map { cache =>
-        new TagCache[F] {
-          override def latest(projectId: Int): F[Option[Tag]] =
-            cache.get(projectId)
-        }
-      }
+      .map(cache => (projectId: Int) => cache.get(projectId))
 
 }
