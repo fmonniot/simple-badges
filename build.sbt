@@ -1,3 +1,4 @@
+val CatsEffectTestingVersion = "0.3.0"
 val CirceVersion = "0.12.0-M4"
 val Http4sVersion = "0.21.0-M3"
 val LogbackVersion = "1.2.3"
@@ -5,7 +6,7 @@ val ScalaXmlVersion = "1.2.0"
 val Specs2Version = "4.8.0"
 val PureConfigVersion = "0.12.1"
 
-lazy val root = (project in file("."))
+lazy val `simple-badges` = (project in file("."))
   .aggregate(server, badges)
 
 lazy val server = (project in file("./server"))
@@ -13,18 +14,19 @@ lazy val server = (project in file("./server"))
   .dependsOn(badges)
   .settings(
     libraryDependencies ++= Seq(
-      "org.http4s"             %% "http4s-blaze-server"    % Http4sVersion,
-      "org.http4s"             %% "http4s-blaze-client"    % Http4sVersion,
-      "org.http4s"             %% "http4s-circe"           % Http4sVersion,
-      "org.http4s"             %% "http4s-dsl"             % Http4sVersion,
-      "org.http4s"             %% "http4s-scala-xml"       % Http4sVersion,
-      "io.circe"               %% "circe-generic"          % CirceVersion,
-      "org.scala-lang.modules" %% "scala-xml"              % ScalaXmlVersion,
-      "com.github.pureconfig"  %% "pureconfig"             % PureConfigVersion,
-      "com.github.pureconfig"  %% "pureconfig-cats-effect" % PureConfigVersion,
-      "org.specs2"             %% "specs2-core"            % Specs2Version % Test,
-      "org.specs2"             %% "specs2-matcher-extra"   % Specs2Version % Test,
-      "ch.qos.logback"         % "logback-classic"         % LogbackVersion
+      "org.http4s"             %% "http4s-blaze-server"        % Http4sVersion,
+      "org.http4s"             %% "http4s-blaze-client"        % Http4sVersion,
+      "org.http4s"             %% "http4s-circe"               % Http4sVersion,
+      "org.http4s"             %% "http4s-dsl"                 % Http4sVersion,
+      "org.http4s"             %% "http4s-scala-xml"           % Http4sVersion,
+      "io.circe"               %% "circe-generic"              % CirceVersion,
+      "org.scala-lang.modules" %% "scala-xml"                  % ScalaXmlVersion,
+      "com.github.pureconfig"  %% "pureconfig"                 % PureConfigVersion,
+      "com.github.pureconfig"  %% "pureconfig-cats-effect"     % PureConfigVersion,
+      "com.codecommit"         %% "cats-effect-testing-specs2" % CatsEffectTestingVersion % Test,
+      "org.specs2"             %% "specs2-core"                % Specs2Version % Test,
+      "org.specs2"             %% "specs2-matcher-extra"       % Specs2Version % Test,
+      "ch.qos.logback"         % "logback-classic"             % LogbackVersion
     ),
     addCompilerPlugin("org.typelevel" %% "kind-projector"     % "0.10.3"),
     addCompilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.0")
