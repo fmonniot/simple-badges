@@ -30,7 +30,7 @@ object BadgesRoutes {
     import eu.monniot.badges.rendering.Color._
 
     HttpRoutes.of[F] {
-      case GET -> Root / "gitlab" / IntVar(projectId) =>
+      case GET -> Root / "gitlab" / IntVar(projectId) / "tag" =>
         tagCache
           .latest(projectId)
           .map {
