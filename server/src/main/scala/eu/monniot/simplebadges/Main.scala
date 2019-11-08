@@ -3,8 +3,8 @@ package eu.monniot.simplebadges
 import cats.effect._
 import cats.implicits._
 import eu.monniot.badges.WidthTable
-import eu.monniot.simplebadges.http.{BadgesRoutes, SimplebadgesRoutes}
-import eu.monniot.simplebadges.services.{Gitlab, HelloWorld, Jokes, TagCache}
+import eu.monniot.simplebadges.http.BadgesRoutes
+import eu.monniot.simplebadges.services.{Gitlab, TagCache}
 import fs2.Stream
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.implicits._
@@ -26,8 +26,6 @@ object Main extends IOApp {
       client <- BlazeClientBuilder[F](global).stream
       blocker <- Stream.resource(Blocker[F])
 
-      helloWorldAlg = HelloWorld.impl[F]
-      jokeAlg = Jokes.impl[F](client)
       gitlab = Gitlab.impl(client, config.gitlab)
 
       widthTable <- Stream.eval(WidthTable.verdanaTable[F](blocker))
@@ -35,10 +33,6 @@ object Main extends IOApp {
       tagCache <- Stream.eval(TagCache.create(gitlab, config.tagCache))
 
       httpApp = Router(
-        "/api" -> {
-          SimplebadgesRoutes.helloWorldRoutes(helloWorldAlg) <+>
-            SimplebadgesRoutes.jokeRoutes(jokeAlg)
-        },
         "/badges" -> {
           BadgesRoutes.generic[F](widthTable) <+>
             BadgesRoutes.gitlab(widthTable, tagCache)
