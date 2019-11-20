@@ -40,6 +40,44 @@ object BadgesRoutes {
               badges.flat(table, message = "No tags found", messageColor = Some(color"lightgrey"))
           }
           .flatMap(Ok(_))
+
+      case GET -> Root / "gitlab" / IntVar(projectId) / "unreleased" / ref =>
+        val gitlab: eu.monniot.simplebadges.services.Gitlab[F] = ???
+
+        tagCache
+          .latest(projectId)
+          .flatMap {
+            case None =>
+              // Lookup `ref` and count the number of commits on it
+              gitlab
+                .commits(projectId, ref)
+                .map(_.size)
+                .map(count => (s"$count unreleased", color"lightgrey"))
+            case Some(tag) =>
+              gitlab
+                .compare(projectId, ref, tag.name)
+                .map(_.commits.size)
+                .map {
+                  case 0 =>
+                    ("caught up", color"green")
+                  case i if i < 3 =>
+                    (s"$i unreleased", color"green")
+                  case i if i < 10 =>
+                    (s"$i unreleased", color"orange")
+                  case i =>
+                    (s"$i unreleased", color"red")
+                }
+          }
+          .map {
+            case (message, color) =>
+              badges.flat(
+                table,
+                label = Some("commits"),
+                message = message,
+                messageColor = Some(color)
+              )
+          }
+          .flatMap(Ok(_))
     }
   }
 }
