@@ -10,6 +10,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers.Authorization
 import org.http4s.implicits._
 import org.http4s.util.CaseInsensitiveString
+import org.specs2.execute.Result
 import org.specs2.matcher.MatchResult
 
 class GitlabSpec extends Specification with CatsIO {
@@ -20,6 +21,7 @@ class GitlabSpec extends Specification with CatsIO {
     can correctly parse the JSON returned by the API      $e1
     call the correct API                                  $e2
     include the configured oauth token when one is given  $e3
+    wrap client errors in its own                         $e4
   """
 
   val jsonResponseSample: String =
@@ -94,7 +96,7 @@ class GitlabSpec extends Specification with CatsIO {
     gitlab.tags(42).map(_ must have length 1)
   }
 
-  val e4: IO[MatchResult[List[Gitlab.Tag]]] = {
+  val e4: IO[Result] = {
     val gitlab = Gitlab.impl(
       Client.fromHttpApp(HttpApp[IO](_ => NotFound())),
       Gitlab.GitlabConfig(uri"http://example.org", None)
@@ -102,8 +104,11 @@ class GitlabSpec extends Specification with CatsIO {
 
     gitlab
       .tags(0)
-      .map(_ => failure("unreachable"))
-      .recov
+      .attempt
+      .map {
+        case Right(_) => failure("unreachable")
+        case Left(error) => error must haveClass[Gitlab.GitlabError]
+      }
   }
 
 }
