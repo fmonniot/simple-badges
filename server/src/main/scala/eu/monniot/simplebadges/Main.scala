@@ -7,10 +7,11 @@ import eu.monniot.simplebadges.http.BadgesRoutes
 import eu.monniot.simplebadges.services.{Gitlab, TagCache}
 import fs2.Stream
 import org.http4s.client.blaze.BlazeClientBuilder
+import org.http4s.client.middleware.{Logger => ClientLogger}
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.server.middleware.Logger
+import org.http4s.server.middleware.{Logger => ServerLogger}
 
 import scala.concurrent.ExecutionContext.global
 
@@ -24,6 +25,7 @@ object Main extends IOApp {
     for {
       config <- Stream.eval(Config.load[F])
       client <- BlazeClientBuilder[F](global).stream
+        .map(ClientLogger(logHeaders = true, logBody = true))
       blocker <- Stream.resource(Blocker[F])
 
       gitlab = Gitlab.impl(client, config.gitlab)
@@ -40,7 +42,7 @@ object Main extends IOApp {
       ).orNotFound
 
       // With Middlewares in place
-      finalHttpApp = Logger.httpApp(logHeaders = true, logBody = true)(httpApp)
+      finalHttpApp = ServerLogger.httpApp(logHeaders = true, logBody = false)(httpApp)
 
       exitCode <- BlazeServerBuilder[F]
         .bindHttp(config.http.port, config.http.host)
