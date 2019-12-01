@@ -55,7 +55,7 @@ lazy val badges = (project in file("./badges"))
 
 lazy val commons = Seq(
   organization := "eu.monniot.badges",
-  version := "0.0.1-SNAPSHOT",
+  version := "0.1.0-SNAPSHOT",
   scalaVersion := ScalaVersion,
   scalacOptions ++= Seq(
     "-deprecation",
