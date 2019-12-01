@@ -56,7 +56,7 @@ object Color {
 
   // Should be doable with a single regex and pattern matching
   def fromCssRgb(rgba: String): Either[String, Color] =
-    Left("RGB support not implemented yet")
+    Left(s"RGB support not implemented yet (for value $rgba)")
 
   def fromCssNamed(name: String): Either[String, Color] =
     if (validations.supportedCssColors.contains(name)) Right(NamedColor(name))

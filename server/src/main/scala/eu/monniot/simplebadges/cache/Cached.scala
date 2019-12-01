@@ -96,7 +96,7 @@ object Cached {
               case NoValue() | Updating(_, _) =>
                 val error = new RuntimeException("Fetching cancelled, couldn't retrieve value")
                 NoValue[F, A]() -> d.complete(Left(error)).attempt.void
-            }
+            }.flatten
           }
 
         }
