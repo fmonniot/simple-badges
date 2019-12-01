@@ -12,6 +12,7 @@ val PureConfigVersion = "0.12.1"
 
 lazy val `simple-badges` = (project in file("."))
   .aggregate(server, badges)
+  .settings(commons)
 
 lazy val server = (project in file("./server"))
   .settings(commons)
@@ -55,6 +56,10 @@ lazy val badges = (project in file("./badges"))
 
 lazy val commons = Seq(
   organization := "eu.monniot.badges",
+  organizationName := "François Monniot",
+  organizationHomepage := Some(new URL("https://francois.monniot.eu")),
+  startYear := Some(2019),
+  licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
   version := "0.1.0-SNAPSHOT",
   scalaVersion := ScalaVersion,
   scalacOptions ++= Seq(

@@ -31,4 +31,4 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-scala-${{ matrix.scala }}-
     - name: Run tests
-      run:  sbt ++${{ matrix.scala }} test
+      run:  sbt ++${{ matrix.scala }} test headerCheck
