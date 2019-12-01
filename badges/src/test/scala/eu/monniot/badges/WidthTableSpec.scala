@@ -1,7 +1,5 @@
 package eu.monniot.badges
 
-import java.nio.file.Paths
-
 import cats.effect.{Blocker, IO}
 import org.specs2.Specification
 import org.specs2.specification.core.SpecStructure

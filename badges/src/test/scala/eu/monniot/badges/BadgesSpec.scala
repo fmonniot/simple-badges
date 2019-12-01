@@ -127,7 +127,7 @@ class BadgesSpec extends Specification with XmlMatchers {
         <path fill="url(#b)" d="M0 0h81v20H0z"/>
       </g>
       <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="110">
-        <image x="5" y="3" width="14" height="14" xlink:href="$logo"/>
+        <image x="5" y="3" width="14" height="14" xlink:href={logo}/>
         <text x="365" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="270">style</text>
         <text x="365" y="140" transform="scale(.1)" textLength="270">style</text>
         <text x="665" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="170">flat</text>
