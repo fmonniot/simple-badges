@@ -8,7 +8,6 @@ import org.http4s.Credentials.Token
 import org.http4s.Method._
 import org.http4s.circe._
 import org.http4s.client.Client
-import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Authorization
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.{EntityDecoder, Headers, Request, Uri}
@@ -21,7 +20,7 @@ trait Gitlab[F[_]] {
   // from & to are git references
   def compare(projectId: Int, from: String, to: String): F[Gitlab.Comparison]
 
-  def commits(projectId: Int, ref: String): F[List[Gitlab.Commit]] = ???
+  def commits(projectId: Int, ref: String): F[List[Gitlab.Commit]]
 }
 
 object Gitlab {
@@ -48,8 +47,6 @@ object Gitlab {
 
   def impl[F[_]: Sync](client: Client[F], config: GitlabConfig): Gitlab[F] =
     new Gitlab[F] {
-      private val dsl = new Http4sClientDsl[F] {}
-      import dsl._
 
       // This API only works with JSON, so let's bring in a generic entity decoder
       implicit private def jsonED[T: Decoder]: EntityDecoder[F, T] =
@@ -79,6 +76,17 @@ object Gitlab {
             Request[F](
               method = GET,
               uri = config.base / "projects" / projectId.toString / "repository" / "compare" +? ("from", from) +? ("to", to),
+              headers = authorization
+            )
+          )
+          .adaptError { case t => GitlabError(t) }
+
+      override def commits(projectId: Int, ref: String): F[List[Commit]] =
+        client
+          .expect[List[Commit]](
+            Request[F](
+              method = GET,
+              uri = config.base / "projects" / projectId.toString / "repository" / "commits" +? ("ref_name", ref),
               headers = authorization
             )
           )

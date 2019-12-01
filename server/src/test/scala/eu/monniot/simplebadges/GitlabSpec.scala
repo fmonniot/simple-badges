@@ -22,9 +22,15 @@ class GitlabSpec extends Specification with CatsIO {
     call the correct API                                  $e2
     include the configured oauth token when one is given  $e3
     wrap client errors in its own                         $e4
+
+  #compare(Int, String, String): F[Gitlab.Comparison]
+    call the correct API and parse the response JSON      $e5
+
+  #commits(Int, String): F[List[Gitlab.Commit]]
+    call the correct API and parse the response JSON      $e6
   """
 
-  val jsonResponseSample: String =
+  val jsonTagsResponseSample: String =
     """[
       |  {
       |    "commit": {
@@ -54,11 +60,79 @@ class GitlabSpec extends Specification with CatsIO {
       |  }
       |]""".stripMargin
 
-  val bearer = CaseInsensitiveString("bearer")
+  val jsonCompareResponseSample: String =
+    """{
+      |  "commit": {
+      |    "id": "12d65c8dd2b2676fa3ac47d955accc085a37a9c1",
+      |    "short_id": "12d65c8dd2b",
+      |    "title": "JS fix",
+      |    "author_name": "Dmitriy Zaporozhets",
+      |    "author_email": "dmitriy.zaporozhets@gmail.com",
+      |    "created_at": "2014-02-27T10:27:00+02:00"
+      |  },
+      |  "commits": [{
+      |    "id": "12d65c8dd2b2676fa3ac47d955accc085a37a9c1",
+      |    "short_id": "12d65c8dd2b",
+      |    "title": "JS fix",
+      |    "author_name": "Dmitriy Zaporozhets",
+      |    "author_email": "dmitriy.zaporozhets@gmail.com",
+      |    "created_at": "2014-02-27T10:27:00+02:00"
+      |  }],
+      |  "diffs": [{
+      |    "old_path": "files/js/application.js",
+      |    "new_path": "files/js/application.js",
+      |    "a_mode": null,
+      |    "b_mode": "100644",
+      |    "diff": "--- a/files/js/application.js\n+++ b/files/js/application.js\n@@ -24,8 +24,10 @@\n //= require g.raphael-min\n //= require g.bar-min\n //= require branch-graph\n-//= require highlightjs.min\n-//= require ace/ace\n //= require_tree .\n //= require d3\n //= require underscore\n+\n+function fix() { \n+  alert(\"Fixed\")\n+}",
+      |    "new_file": false,
+      |    "renamed_file": false,
+      |    "deleted_file": false
+      |  }],
+      |  "compare_timeout": false,
+      |  "compare_same_ref": false
+      |}
+      |""".stripMargin
+
+  val jsonCommitsResponseSample: String =
+    """[
+      |  {
+      |    "id": "ed899a2f4b50b4370feeea94676502b42383c746",
+      |    "short_id": "ed899a2f4b5",
+      |    "title": "Replace sanitize with escape once",
+      |    "author_name": "Dmitriy Zaporozhets",
+      |    "author_email": "dzaporozhets@sphereconsultinginc.com",
+      |    "authored_date": "2012-09-20T11:50:22+03:00",
+      |    "committer_name": "Administrator",
+      |    "committer_email": "admin@example.com",
+      |    "committed_date": "2012-09-20T11:50:22+03:00",
+      |    "created_at": "2012-09-20T11:50:22+03:00",
+      |    "message": "Replace sanitize with escape once",
+      |    "parent_ids": [
+      |      "6104942438c14ec7bd21c6cd5bd995272b3faff6"
+      |    ]
+      |  },
+      |  {
+      |    "id": "6104942438c14ec7bd21c6cd5bd995272b3faff6",
+      |    "short_id": "6104942438c",
+      |    "title": "Sanitize for network graph",
+      |    "author_name": "randx",
+      |    "author_email": "dmitriy.zaporozhets@gmail.com",
+      |    "committer_name": "Dmitriy",
+      |    "committer_email": "dmitriy.zaporozhets@gmail.com",
+      |    "created_at": "2012-09-20T09:06:12+03:00",
+      |    "message": "Sanitize for network graph",
+      |    "parent_ids": [
+      |      "ae1d9fb46aa2b07ee9836d49862ec4e2c46fbbba"
+      |    ]
+      |  }
+      |]
+      |""".stripMargin
+
+  private val bearer = CaseInsensitiveString("bearer")
 
   val e1: IO[MatchResult[List[Gitlab.Tag]]] = {
     val gitlab = Gitlab.impl(
-      Client.fromHttpApp(HttpApp[IO](_ => Ok(jsonResponseSample))),
+      Client.fromHttpApp(HttpApp[IO](_ => Ok(jsonTagsResponseSample))),
       Gitlab.GitlabConfig(uri"http://example.org", None)
     )
 
@@ -71,7 +145,7 @@ class GitlabSpec extends Specification with CatsIO {
     val gitlab = Gitlab.impl(
       Client.fromHttpApp(HttpApp[IO] {
         case GET -> Root / "projects" / "42" / "repository" / "tags" =>
-          Ok(jsonResponseSample)
+          Ok(jsonTagsResponseSample)
         case _ => NotFound()
       }),
       Gitlab.GitlabConfig(uri"http://example.org", None)
@@ -85,7 +159,7 @@ class GitlabSpec extends Specification with CatsIO {
       Client.fromHttpApp(HttpApp[IO] { req =>
         req.headers.get(Authorization) match {
           case Some(Authorization(Credentials.Token(`bearer`, "my-token-api"))) =>
-            Ok(jsonResponseSample)
+            Ok(jsonTagsResponseSample)
           case _ =>
             NotFound("Auth doesn't match")
         }
@@ -111,4 +185,51 @@ class GitlabSpec extends Specification with CatsIO {
       }
   }
 
+  val e5: IO[MatchResult[Gitlab.Comparison]] = {
+    val gitlab = Gitlab.impl(
+      Client.fromHttpApp(HttpApp[IO] {
+        case req @ GET -> Root / "projects" / "50" / "repository" / "compare" =>
+          val result = for {
+            from <- req.params.get("from") if from == "tag"
+            to <- req.params.get("to") if to == "master"
+          } yield (from, to)
+
+          result.fold(NotFound("Incorrect query params"))(_ => Ok(jsonCompareResponseSample))
+        case _ => NotFound()
+      }),
+      Gitlab.GitlabConfig(uri"http://example.org", None)
+    )
+
+    gitlab.compare(50, "tag", "master").map { comparison =>
+      comparison must beEqualTo(
+        Gitlab.Comparison(List(Gitlab.Commit("12d65c8dd2b2676fa3ac47d955accc085a37a9c1", "JS fix")))
+      )
+    }
+  }
+
+  val e6: IO[MatchResult[List[Gitlab.Commit]]] = {
+    val gitlab = Gitlab.impl(
+      Client.fromHttpApp(HttpApp[IO] {
+        case req @ GET -> Root / "projects" / "50" / "repository" / "commits" =>
+          req.params
+            .get("ref_name")
+            .filter(_ == "develop")
+            .fold(NotFound("Incorrect query params"))(_ => Ok(jsonCommitsResponseSample))
+        case _ => NotFound()
+      }),
+      Gitlab.GitlabConfig(uri"http://example.org", None)
+    )
+
+    gitlab.commits(50, "develop").map { comparison =>
+      comparison must beEqualTo(
+        List(
+          Gitlab.Commit(
+            "ed899a2f4b50b4370feeea94676502b42383c746",
+            "Replace sanitize with escape once"
+          ),
+          Gitlab.Commit("6104942438c14ec7bd21c6cd5bd995272b3faff6", "Sanitize for network graph")
+        )
+      )
+    }
+  }
 }
