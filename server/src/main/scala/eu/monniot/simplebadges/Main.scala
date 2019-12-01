@@ -37,7 +37,7 @@ object Main extends IOApp {
       httpApp = Router(
         "/badges" -> {
           BadgesRoutes.generic[F](widthTable) <+>
-            BadgesRoutes.gitlab(widthTable, tagCache)
+            BadgesRoutes.gitlab(widthTable, tagCache, gitlab)
         }
       ).orNotFound
 

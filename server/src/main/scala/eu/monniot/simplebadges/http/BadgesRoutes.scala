@@ -4,7 +4,7 @@ import cats.effect.Sync
 import cats.implicits._
 import eu.monniot.badges.WidthTable
 import eu.monniot.badges.rendering.badges
-import eu.monniot.simplebadges.services.TagCache
+import eu.monniot.simplebadges.services.{Gitlab, TagCache}
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 
@@ -24,7 +24,9 @@ object BadgesRoutes {
     }
   }
 
-  def gitlab[F[_]: Sync](table: WidthTable, tagCache: TagCache[F]): HttpRoutes[F] = {
+  def gitlab[F[_]: Sync](table: WidthTable,
+                         tagCache: TagCache[F],
+                         gitlab: Gitlab[F]): HttpRoutes[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
     import eu.monniot.badges.rendering.Color._
@@ -42,8 +44,6 @@ object BadgesRoutes {
           .flatMap(Ok(_))
 
       case GET -> Root / "gitlab" / IntVar(projectId) / "unreleased" / ref =>
-        val gitlab: eu.monniot.simplebadges.services.Gitlab[F] = ???
-
         tagCache
           .latest(projectId)
           .flatMap {
@@ -53,11 +53,15 @@ object BadgesRoutes {
                 .commits(projectId, ref)
                 .map(_.size)
                 .map(count => (s"$count unreleased", color"lightgrey"))
+
             case Some(tag) =>
+              // We assume the tag must be in the ref history, hence
+              // going from it to the start of the reference.
               gitlab
-                .compare(projectId, ref, tag.name)
+                .compare(projectId, from = tag.name, to = ref)
                 .map(_.commits.size)
                 .map {
+                  // Here it should probably be a configuration options instead
                   case 0 =>
                     ("caught up", color"green")
                   case i if i < 3 =>
